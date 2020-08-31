@@ -1,0 +1,133 @@
+Step1:
+
+create test_read.py under test_thermal/test_Dashboard
+with content:
+
+from seleniumbase import BaseCase
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from parameterized import parameterized
+import pytest
+from test_thermal.test_Dashboard.DashboardBase import DashboardBase
+from utilities import utilities
+from config.constants import *
+
+
+class TestRead(DashboardBase):
+    TNB = DASHBOARD_READ_TNB
+    datafile = DASHBOARD_READ_DATA_FILE
+
+    test_data_read_normal = utilities.gen_testdata(datafile, delimiter=',', header=0, scenario='normal')
+
+    @parameterized.expand(test_data_read_normal)
+    @pytest.mark.scenario_regression(TNB + 1)
+    @pytest.mark.scenario_debug(1)
+    def test_read_normal(self, companyname, expectation):
+        self.dashboard_read(companyname, expectation)
+
+step2:
+
+add:
+
+DASHBOARD_READ_TNB = 11100
+DASHBOARD_READ_DATA_FILE = ROOT_PATH + '/test_thermal/test_Dashboard/data_read.csv'
+APPLICATION_USER_ACCOUNT = 'demo'
+
+in config/constants.py
+
+step3:
+
+create  data_read.csv under test_thermal/test_Dashboard
+with content:
+
+scenario,companyname,expectation
+normal,xxxxxxx.,pass
+
+step4:
+
+add:
+
+xxxxx,xxxxxx,,xxxxxxxx,,
+
+in test_thermal/data_user_profile.csv
+
+step4:
+
+create DashboardBaseComponent.py under test_thermal/test_Dashboard
+with content:
+
+from seleniumbase import BaseCase
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from parameterized import parameterized
+import pytest
+from utilities import utilities
+from utilities import gmail
+from utilities.UserFile import UserFile
+from config.constants import *
+from test_thermal.ThermalBase import ThermalBase
+import math
+import datetime
+import time
+import json
+
+
+class DashboardBaseComponent(ThermalBase):
+
+
+    def process_read_input(self, companyname, expectation):
+        [companyname, expectation] = map(str, [companyname, expectation])
+        return companyname, expectation
+
+    def read_today_summary_from_web(self):
+        return 200
+
+    def read_today_summary_from_api(self):
+        return 200
+
+
+step5:
+
+create DashboardBase.py under test_thermal/test_Dashboard
+with content:
+
+from seleniumbase import BaseCase
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from parameterized import parameterized
+import pytest
+from utilities import utilities
+from utilities import gmail
+from utilities.UserFile import UserFile
+from config.constants import *
+from test_thermal.test_Dashboard.DashboardBaseComponent import DashboardBaseComponent
+import math
+import datetime
+import time
+import json
+
+class DashboardBase(DashboardBaseComponent):
+
+    def dashboard_read(self, companyname, expectation):
+
+        self.start_test(locals())
+
+        companyname, expectation = self.process_read_input(companyname, expectation)
+
+        self.login_application_user()
+
+        self.choose_company(companyname=companyname)
+
+        value_web = self.read_today_summary_from_web()
+        value_api = self.read_today_summary_from_api()
+
+        if expectation == "pass":
+            self.assert_true(value_web == value_api, "Today summary doesn't match")
+
+        self.logout(username=APPLICATION_USER_ACCOUNT)
+
+        self.end_test(self._testMethodName)
+
+step6:
+
+run:   pytest ./test_thermal/ -m scenario_debug  --html=report.html   --slow

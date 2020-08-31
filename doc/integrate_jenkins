@@ -1,0 +1,68 @@
+#########################Deploy Python Env in VPS################################
+ssh xxxxxxxxxxxxx
+docker start xxxxxx
+docker exec -it -u root xxxxxx /bin/bash
+python --version
+apt-get update
+apt-get upgrade
+apt-get install wget build-essential checkinstall
+apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev \
+    libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+apt-get install liblzma-dev
+cd /usr/src
+wget https://www.python.org/ftp/python/3.7.8/Python-3.7.8.tgz
+tar xzf Python-3.7.8.tgz
+cd Python-3.7.8
+./configure --enable-optimizations
+make altinstall
+python3.7 --version
+which python3.7
+apt-get install git
+apt-get install python-pip
+python3.7 -m pip install --upgrade virtualenv
+python3.7 -m pip install --upgrade virtualenvwrapper
+export WORKON_HOME=/usr/local/lib/python3.7/site-packages/virtualenv
+export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3.7
+source /usr/local/bin/virtualenvwrapper.sh
+mkvirtualenv seleniumbase_venv  --python=/usr/local/bin/python3.7
+python3.7 -m pip install -U pip
+cd /usr/local
+git clone https://github.com/seleniumbase/SeleniumBase.git
+cd SeleniumBase
+pip install -r requirements.txt
+pip install seleniumbase
+pip install pandas
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+pip install html2text
+seleniumbase install chromedriver latest
+cd /usr/local
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+apt install ./google-chrome-stable_current_amd64.deb
+
+
+##################################Integrate SeleniumBase with jenkins#########################
+apt-get install aptitude
+apt-get install sudo
+cd /usr/local/SeleniumBase/integrations/linux
+bash ./Linuxfile.sh
+bash ./Xvfb_launcher.sh
+bash ./jenkins_permissions.sh
+bash ./tomcat_permissions.sh
+
+################################Integrate AutoTest Code with jenkins
+# In jenkins->source management->connect Autotest Code
+
+
+################################shell in jenkins###############################################
+. /usr/local/lib/python3.7/site-packages/virtualenv/seleniumbase_venv/bin/activate
+pytest ./test_thermal -m scenario_regression  --headless --html=report.html --slow
+
+
+################################email notification in jenkins###############################################
+http://xxxxxxxxxxxx/configure
+
+Jenkins Location
+Input system admin email address
+
+Email notification
+smtp service from admin email server
